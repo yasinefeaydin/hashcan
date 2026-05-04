@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<script>
+  (function(){
+    var t=localStorage.getItem('hc-theme');
+    if(t)document.documentElement.setAttribute('data-theme',t);
+  })();
+</script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HashCan — Hash & Encode Toolkit</title>
+<meta name="description" content="HashCan — MD5, SHA-1, SHA-256, SHA-512, Base64 encode/decode, URL encode/decode, Hex, binary ve daha fazlası. Tek sayfada eksiksiz hash aracı.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ═══ THEMES ═══ */
+[data-theme="dark"]{
+  --accent:#00b4ff;--accent-dim:#008ecf;--accent-bright:#33c3ff;
+  --accent-glow:rgba(0,180,255,0.13);--accent-border:rgba(0,180,255,0.3);
+  --bg:#0a0f14;--bg2:#0f1720;--bg3:#141f2b;--bg4:#1a2636;
+  --border:rgba(255,255,255,0.06);--border-h:rgba(0,180,255,0.45);
+  --text:#ddeeff;--muted:#6a8aaa;--faint:#2d4055;
+  --nav-bg:rgba(10,15,20,0.9);--shadow:rgba(0,0,0,0.6);
+  --success:#00e5a0;--danger:#ff4d6a;--warn:#ffbb00;
+}
+[data-theme="light"]{
+  --accent:#0085cc;--accent-dim:#006ba6;--accent-bright:#0099ee;
+  --accent-glow:rgba(0,133,204,0.1);--accent-border:rgba(0,133,204,0.28);
+  --bg:#eef4f9;--bg2:#e3ecf4;--bg3:#d6e4ef;--bg4:#c8d8e8;
+  --border:rgba(0,0,0,0.08);--border-h:rgba(0,133,204,0.45);
+  --text:#0d1f30;--muted:#4a6a85;--faint:#9ab8cc;
+  --nav-bg:rgba(238,244,249,0.92);--shadow:rgba(0,40,80,0.12);
+  --success:#00a870;--danger:#d63050;--warn:#cc8800;
+}
+
+/* ═══ RESET ═══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{cursor:none;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden;transition:background .4s,color .4s;}
+
+/* ═══ CUSTOM CURSOR ═══ */
+#cur{position:fixed;width:8px;height:8px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .15s,height .15s,opacity .2s;will-change:transform;}
+#cur-ring{position:fixed;width:28px;height:28px;border:1px solid var(--accent);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:.35;transition:width .35s,height .35s,opacity .3s;will-change:transform;}
+body.ch #cur{width:18px;height:18px;}
+body.ch #cur-ring{width:52px;height:52px;opacity:.2;}
+
+/* ═══ SITE ═══ */
+#site{opacity:1;}
+
+
+/* ═══ NAV ═══ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  display:grid;grid-template-columns:auto 1fr auto;
+  align-items:center;padding:16px 5%;
+  background:var(--nav-bg);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  transition:background .4s,border-color .4s;gap:20px;
+}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-brand-logo{width:32px;height:32px;position:relative;}
+.nav-brand-logo svg{width:32px;height:32px;transition:filter .3s,transform .3s;}
+.nav-brand:hover .nav-brand-logo svg{filter:drop-shadow(0 0 12px var(--accent));transform:rotate(15deg) scale(1.1);}
+.nav-brand-text{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.12em;color:var(--text);}
+.nav-brand-text span{color:var(--accent);}
+
+.nav-center{display:flex;justify-content:center;}
+.nav-links{display:flex;gap:4px;list-style:none;align-items:center;}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;transition:color .2s;padding:8px 14px;border-radius:3px;display:block;position:relative;}
+.nav-links a::after{content:'';position:absolute;bottom:4px;left:14px;width:0;height:1.5px;background:var(--accent);transition:width .22s;}
+.nav-links a:hover{color:var(--accent);}
+.nav-links a:hover::after{width:calc(100% - 28px);}
+
+.theme-wrap{display:flex;align-items:center;}
+.theme-pill{display:flex;align-items:center;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px;cursor:none;transition:border-color .3s,box-shadow .3s;}
+.theme-pill:hover{border-color:var(--accent-border);box-shadow:0 0 0 3px var(--accent-glow);}
+.t-ico{width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;transition:background .4s,color .4s,transform .3s,box-shadow .3s;color:var(--faint);}
+.t-ico svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .4s;}
+[data-theme="dark"] .t-moon{background:var(--accent);color:var(--bg);box-shadow:0 0 10px var(--accent-glow);transform:scale(1.08);}
+[data-theme="dark"] .t-sun{color:var(--faint);transform:scale(.9);}
+[data-theme="light"] .t-sun{background:var(--accent);color:#fff;box-shadow:0 0 10px var(--accent-glow);transform:scale(1.08);}
+[data-theme="light"] .t-moon{color:var(--faint);transform:scale(.9);}
+
+/* ═══ HERO ═══ */
+#hero{min-height:100vh;display:flex;align-items:center;padding:120px 5% 80px;position:relative;overflow:hidden;}
+.h-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:60px 60px;opacity:1;}
+.h-glow{position:absolute;top:5%;left:-10%;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 65%);pointer-events:none;}
+.h-glow2{position:absolute;bottom:-10%;right:-5%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,180,255,0.06) 0%,transparent 65%);pointer-events:none;}
+.h-inner{position:relative;z-index:2;max-width:1240px;width:100%;margin:0 auto;display:grid;grid-template-columns:1.2fr .8fr;gap:80px;align-items:center;}
+
+.h-tag{display:inline-flex;align-items:center;gap:8px;background:var(--accent-glow);border:1px solid var(--accent-border);color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:7px 16px;border-radius:2px;margin-bottom:24px;}
+.h-tag-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
+.h-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,10vw,120px);line-height:.86;letter-spacing:.03em;color:var(--text);margin-bottom:24px;}
+.h-name span{color:var(--accent);display:block;}
+.h-sub{font-size:16px;font-weight:300;color:var(--muted);margin-bottom:40px;line-height:1.9;max-width:480px;}
+.h-sub strong{color:var(--text);font-weight:600;}
+.h-badges{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:44px;}
+.badge{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 12px;background:var(--bg3);border:1px solid var(--accent-border);border-radius:2px;color:var(--accent);letter-spacing:.04em;}
+
+/* Quick Hash Card */
+.quick-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:36px;position:relative;overflow:hidden;transition:border-color .35s,box-shadow .35s,transform .35s;}
+.quick-card:hover{border-color:var(--accent-border);box-shadow:0 24px 60px var(--shadow),0 0 40px var(--accent-glow);transform:translateY(-6px);}
+.quick-card::before{content:'';position:absolute;top:0;left:50%;right:50%;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);transition:left .45s,right .45s;}
+.quick-card:hover::before{left:0;right:0;}
+.qc-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.06em;color:var(--text);margin-bottom:4px;}
+.qc-sub{font-size:13px;color:var(--muted);margin-bottom:22px;}
+
+.qc-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);outline:none;resize:vertical;min-height:90px;transition:border-color .22s,box-shadow .22s;}
+.qc-input:focus{border-color:var(--accent-border);box-shadow:0 0 0 3px var(--accent-glow);}
+.qc-input::placeholder{color:var(--faint);}
+
+.qc-algos{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0;}
+.algo-btn{font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:none;transition:all .18s;letter-spacing:.04em;}
+.algo-btn:hover,.algo-btn.active{background:var(--accent-glow);border-color:var(--accent-border);color:var(--accent);}
+.algo-btn.active{font-weight:700;}
+
+.qc-out{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-bright);word-break:break-all;min-height:52px;line-height:1.7;position:relative;transition:border-color .22s;}
+.qc-out.has-value{border-color:var(--accent-border);}
+.qc-actions{display:flex;gap:8px;margin-top:10px;}
+.act-btn{display:flex;align-items:center;gap:6px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;border-radius:3px;border:none;cursor:none;transition:all .2s;}
+.act-btn.primary{background:var(--accent);color:var(--bg);}
+.act-btn.primary:hover{background:var(--accent-dim);transform:translateY(-2px);box-shadow:0 8px 24px var(--accent-glow);}
+.act-btn.secondary{background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
+.act-btn.secondary:hover{border-color:var(--accent-border);color:var(--accent);}
+.act-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+
+/* ═══ SECTIONS ═══ */
+.sw{padding:100px 5%;max-width:1240px;margin:0 auto;}
+.sec-label{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,5.5vw,66px);letter-spacing:.04em;color:var(--text);margin-bottom:54px;line-height:1;}
+.divider{width:100%;height:1px;background:var(--border);}
+
+/* ═══ TOOL GRID ═══ */
+#tools-wrap{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.tool-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tool-tabs::-webkit-scrollbar{display:none;}
+.tab-btn{font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:14px 22px;border:none;background:transparent;color:var(--muted);cursor:none;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .2s,border-color .2s;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.tool-panel{display:none;}
+.tool-panel.active{display:block;padding:44px 0;}
+
+/* IO Box */
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+.io-col label{display:block;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.io-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);outline:none;resize:vertical;min-height:160px;transition:border-color .22s,box-shadow .22s;}
+.io-textarea:focus{border-color:var(--accent-border);box-shadow:0 0 0 3px var(--accent-glow);}
+.io-textarea::placeholder{color:var(--faint);}
+.io-textarea.output{color:var(--accent-bright);background:var(--bg);}
+.io-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding-top:28px;}
+.io-arrow{width:40px;height:40px;background:var(--accent-glow);border:1px solid var(--accent-border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:none;transition:all .22s;}
+.io-arrow:hover{background:var(--accent);transform:scale(1.12);}
+.io-arrow svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .22s;}
+.io-arrow:hover svg{stroke:var(--bg);}
+
+.tool-opts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+.opt-chip{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--muted);cursor:none;transition:all .18s;}
+.opt-chip:hover,.opt-chip.active{background:var(--accent-glow);border-color:var(--accent-border);color:var(--accent);}
+
+.tool-btn-row{display:flex;gap:10px;margin-top:18px;}
+.t-btn{display:flex;align-items:center;gap:7px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:12px 24px;border-radius:3px;border:none;cursor:none;transition:all .2s;}
+.t-btn.primary{background:var(--accent);color:var(--bg);}
+.t-btn.primary:hover{background:var(--accent-dim);transform:translateY(-2px);box-shadow:0 8px 24px var(--accent-glow);}
+.t-btn.secondary{background:transparent;border:1.5px solid var(--faint);color:var(--muted);}
+.t-btn.secondary:hover{border-color:var(--accent-border);color:var(--accent);}
+.t-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+
+/* Status indicator */
+.status-row{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.status-dot-s{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;animation:pulse 2s infinite;}
+.status-dot-e{width:7px;height:7px;border-radius:50%;background:var(--danger);flex-shrink:0;}
+.char-count{margin-left:auto;font-size:11px;color:var(--faint);}
+
+/* ═══ HASH COMPARE ═══ */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.cmp-result{display:flex;align-items:center;justify-content:center;gap:12px;padding:20px;border-radius:4px;border:1px solid var(--border);margin-top:18px;font-size:14px;font-weight:600;transition:all .3s;}
+.cmp-match{background:rgba(0,229,160,0.07);border-color:rgba(0,229,160,0.3);color:var(--success);}
+.cmp-nomatch{background:rgba(255,77,106,0.07);border-color:rgba(255,77,106,0.3);color:var(--danger);}
+.cmp-result svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ═══ INFO CARDS ═══ */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;}
+.info-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid transparent;border-radius:4px;padding:26px 28px;transition:all .22s;}
+.info-card:hover{border-color:var(--border-h);border-left-color:var(--accent);background:var(--bg3);transform:translateX(6px);}
+.info-card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.info-card-title .ic-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;background:var(--accent-glow);border:1px solid var(--accent-border);color:var(--accent);border-radius:2px;}
+.info-card p{font-size:13px;color:var(--muted);line-height:1.8;font-weight:300;}
+
+/* ═══ STATS STRIP ═══ */
+.stats-strip{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0;}
+.stats-inner{max-width:1240px;margin:0 auto;padding:0 5%;display:grid;grid-template-columns:repeat(4,1fr);}
+.stat-item{padding:32px 24px;border-right:1px solid var(--border);text-align:center;}
+.stat-item:last-child{border-right:none;}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--accent);line-height:1;margin-bottom:4px;}
+.stat-l{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+
+/* ═══ FOOTER ═══ */
+footer{text-align:center;padding:28px 5%;border-top:1px solid var(--border);font-size:13px;color:var(--faint);background:var(--bg);}
+footer a{color:var(--accent);text-decoration:none;}
+footer span{color:var(--accent);}
+.foot-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.1em;margin-bottom:8px;}
+.foot-logo span{color:var(--accent);}
+
+/* ═══ ANIMATIONS ═══ */
+.fi{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+.fi.v{opacity:1;transform:translateY(0);}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,180,255,.5);}50%{box-shadow:0 0 0 5px rgba(0,180,255,0);}}
+
+/* Copy flash */
+.copied-flash{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--bg);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:10px 24px;border-radius:3px;box-shadow:0 8px 28px var(--accent-glow);z-index:9000;opacity:0;pointer-events:none;transition:opacity .2s;}
+.copied-flash.show{opacity:1;}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:900px){
+  .h-inner,.io-grid,.compare-grid{grid-template-columns:1fr;gap:28px;}
+  .nav-center{display:none;}
+  nav{grid-template-columns:auto auto;justify-content:space-between;}
+  .io-mid{flex-direction:row;padding-top:0;}
+  .stats-inner{grid-template-columns:repeat(2,1fr);}
+  .stat-item:nth-child(2){border-right:none;}
+}
+@media(max-width:600px){
+  #cur,#cur-ring{display:none;}
+  body{cursor:auto;}
+  a,button,.algo-btn,.act-btn,.t-btn,.tab-btn,.opt-chip,.theme-pill,.io-arrow{cursor:pointer;}
+  nav{padding:12px 5%;}
+  #hero{padding:100px 5% 60px;}
+  .h-name{font-size:clamp(56px,14vw,80px);}
+  .quick-card{padding:24px 20px;}
+  .sw{padding:64px 5%;}
+  .stats-inner{grid-template-columns:repeat(2,1fr);}
+  .stat-item{padding:22px 16px;}
+  .stat-n{font-size:34px;}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<!-- SITE -->
+<div id="site">
+
+<nav>
+  <a class="nav-brand" href="#hero">
+    <div class="nav-brand-logo">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="30" height="30" rx="4" stroke="var(--accent)" stroke-width="1.5"/>
+        <path d="M8 10H24M8 16H24M8 22H24M13 7V25M19 7V25" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="nav-brand-text"><span>Hash</span>Can</span>
+  </a>
+
+  <div class="nav-center">
+    <ul class="nav-links">
+      <li><a href="#hero">Ana Sayfa</a></li>
+      <li><a href="#tools-wrap">Araçlar</a></li>
+      <li><a href="#about-hashes">Algoritmalar</a></li>
+      <li><a href="#stats-strip">İstatistikler</a></li>
+    </ul>
+  </div>
+
+  <div class="theme-wrap">
+    <button class="theme-pill" id="themeBtn" title="Tema Değiştir" aria-label="Tema değiştir">
+      <span class="t-ico t-sun">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </span>
+      <span class="t-ico t-moon">
+        <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="h-grid"></div>
+  <div class="h-glow"></div>
+  <div class="h-glow2"></div>
+  <div class="h-inner">
+    <div class="fi">
+      <div class="h-tag"><span class="h-tag-dot"></span> Client-Side · Zero Server · Privacy First</div>
+      <h1 class="h-name">Hash<span>Can</span></h1>
+      <p class="h-sub">MD5, SHA-256, SHA-512, Base64, URL Encode, Hex dönüşümü ve daha fazlası. <strong>Tüm işlemler tarayıcınızda</strong> — verileriniz hiçbir sunucuya gönderilmez.</p>
+      <div class="h-badges">
+        <span class="badge">MD5</span>
+        <span class="badge">SHA-1</span>
+        <span class="badge">SHA-256</span>
+        <span class="badge">SHA-512</span>
+        <span class="badge">Base64</span>
+        <span class="badge">HEX</span>
+        <span class="badge">URL Encode</span>
+        <span class="badge">Binary</span>
+        <span class="badge">JWT Decode</span>
+      </div>
+    </div>
+
+    <!-- Quick Hash Card -->
+    <div class="quick-card fi">
+      <div class="qc-title">Hızlı Hash</div>
+      <div class="qc-sub">Metni yaz, algoritmayı seç, kopyala.</div>
+      <textarea class="qc-input" id="qcInput" placeholder="Hashlenecek metni buraya yaz..."></textarea>
+      <div class="qc-algos">
+        <button class="algo-btn active" data-algo="md5">MD5</button>
+        <button class="algo-btn" data-algo="sha1">SHA-1</button>
+        <button class="algo-btn" data-algo="sha256">SHA-256</button>
+        <button class="algo-btn" data-algo="sha512">SHA-512</button>
+      </div>
+      <div class="qc-out" id="qcOut">— hash çıktısı burada görünecek —</div>
+      <div class="qc-actions">
+        <button class="act-btn primary" id="qcHashBtn">
+          <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="21" y2="21"/></svg>
+          Hashle
+        </button>
+        <button class="act-btn secondary" id="qcCopyBtn">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Kopyala
+        </button>
+        <button class="act-btn secondary" id="qcClearBtn">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          Temizle
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- STATS STRIP -->
+<div class="stats-strip" id="stats-strip">
+  <div class="stats-inner">
+    <div class="stat-item fi"><div class="stat-n">9</div><div class="stat-l">Hash / Encode Algoritması</div></div>
+    <div class="stat-item fi"><div class="stat-n">100%</div><div class="stat-l">Client-Side İşlem</div></div>
+    <div class="stat-item fi"><div class="stat-n">0</div><div class="stat-l">Sunucuya Gönderilen Veri</div></div>
+    <div class="stat-item fi"><div class="stat-n">∞</div><div class="stat-l">Kullanım Limiti</div></div>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<div id="tools-wrap">
+  <div style="max-width:1240px;margin:0 auto;padding:0 5%;">
+    <div class="sw" style="padding-bottom:16px;">
+      <div class="sec-label fi">Araçlar</div>
+      <div class="sec-title fi">Tüm Araçlar</div>
+
+      <div class="tool-tabs">
+        <button class="tab-btn active" data-tab="encode">Encode / Decode</button>
+        <button class="tab-btn" data-tab="compare">Hash Karşılaştır</button>
+        <button class="tab-btn" data-tab="multi">Çoklu Hash</button>
+        <button class="tab-btn" data-tab="jwt">JWT Decode</button>
+        <button class="tab-btn" data-tab="text">Metin Araçları</button>
+      </div>
+
+      <!-- ENCODE / DECODE -->
+      <div class="tool-panel active" id="tab-encode">
+        <div class="tool-opts" id="encodeOpts">
+          <button class="opt-chip active" data-mode="base64">Base64</button>
+          <button class="opt-chip" data-mode="url">URL Encode</button>
+          <button class="opt-chip" data-mode="hex">Hex</button>
+          <button class="opt-chip" data-mode="binary">Binary</button>
+          <button class="opt-chip" data-mode="html">HTML Entity</button>
+          <button class="opt-chip" data-mode="unicode">Unicode</button>
+        </div>
+        <div class="io-grid">
+          <div class="io-col">
+            <label>Giriş</label>
+            <textarea class="io-textarea" id="encInput" placeholder="Encode/decode edilecek metin..."></textarea>
+          </div>
+          <div class="io-col">
+            <label>Çıkış</label>
+            <textarea class="io-textarea output" id="encOutput" placeholder="Çıkış burada görünecek..." readonly></textarea>
+          </div>
+        </div>
+        <div class="tool-btn-row">
+          <button class="t-btn primary" id="encodeBtn">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Encode
+          </button>
+          <button class="t-btn secondary" id="decodeBtn">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Decode
+          </button>
+          <button class="t-btn secondary" id="encCopyBtn">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Kopyala
+          </button>
+          <button class="t-btn secondary" id="swapBtn">
+            <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            Çevir
+          </button>
+        </div>
+        <div class="status-row">
+          <span class="status-dot-s"></span>
+          <span id="encStatus">Hazır</span>
+          <span class="char-count" id="encCharCount">0 karakter</span>
+        </div>
+      </div>
+
+      <!-- COMPARE -->
+      <div class="tool-panel" id="tab-compare">
+        <div class="compare-grid">
+          <div class="io-col">
+            <label>Hash 1</label>
+            <textarea class="io-textarea" id="cmp1" placeholder="İlk hash..." style="min-height:90px;"></textarea>
+          </div>
+          <div class="io-col">
+            <label>Hash 2</label>
+            <textarea class="io-textarea" id="cmp2" placeholder="İkinci hash..." style="min-height:90px;"></textarea>
+          </div>
+        </div>
+        <div class="tool-btn-row">
+          <button class="t-btn primary" id="compareBtn">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Karşılaştır
+          </button>
+          <button class="t-btn secondary" id="cmpClear">Temizle</button>
+        </div>
+        <div id="cmpResult" style="display:none;margin-top:18px;"></div>
+        <div style="margin-top:28px;padding-top:28px;border-top:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Metni Hashle & Karşılaştır</div>
+          <div class="io-col" style="margin-bottom:12px;">
+            <label>Metin</label>
+            <textarea class="io-textarea" id="cmpText" placeholder="Metin..." style="min-height:70px;"></textarea>
+          </div>
+          <div class="io-col" style="margin-bottom:12px;">
+            <label>Beklenen Hash</label>
+            <textarea class="io-textarea" id="cmpExpected" placeholder="Beklenen hash değeri..." style="min-height:50px;"></textarea>
+          </div>
+          <div class="tool-opts" id="cmpAlgoOpts">
+            <button class="opt-chip active" data-algo="md5">MD5</button>
+            <button class="opt-chip" data-algo="sha1">SHA-1</button>
+            <button class="opt-chip" data-algo="sha256">SHA-256</button>
+            <button class="opt-chip" data-algo="sha512">SHA-512</button>
+          </div>
+          <button class="t-btn primary" id="cmpHashBtn" style="margin-top:8px;">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Doğrula
+          </button>
+          <div id="cmpHashResult" style="display:none;margin-top:16px;"></div>
+        </div>
+      </div>
+
+      <!-- MULTI HASH -->
+      <div class="tool-panel" id="tab-multi">
+        <div class="io-col" style="margin-bottom:18px;">
+          <label>Metin</label>
+          <textarea class="io-textarea" id="multiInput" placeholder="Tüm algoritmaları aynı anda hash'lemek için metni gir..."></textarea>
+        </div>
+        <button class="t-btn primary" id="multiHashBtn">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Tüm Algoritmaları Çalıştır
+        </button>
+        <div id="multiResults" style="margin-top:24px;display:flex;flex-direction:column;gap:12px;"></div>
+      </div>
+
+      <!-- JWT -->
+      <div class="tool-panel" id="tab-jwt">
+        <div class="io-col" style="margin-bottom:18px;">
+          <label>JWT Token</label>
+          <textarea class="io-textarea" id="jwtInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="min-height:100px;"></textarea>
+        </div>
+        <button class="t-btn primary" id="jwtDecodeBtn">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Decode Et
+        </button>
+        <div id="jwtResult" style="margin-top:20px;"></div>
+      </div>
+
+      <!-- TEXT TOOLS -->
+      <div class="tool-panel" id="tab-text">
+        <div class="io-col" style="margin-bottom:18px;">
+          <label>Metin</label>
+          <textarea class="io-textarea" id="textInput" placeholder="İşlemek istediğin metni gir..."></textarea>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+          <button class="t-btn secondary" data-action="upper">BÜYÜK HARF</button>
+          <button class="t-btn secondary" data-action="lower">küçük harf</button>
+          <button class="t-btn secondary" data-action="reverse">Ters Çevir</button>
+          <button class="t-btn secondary" data-action="wordcount">Kelime Sayısı</button>
+          <button class="t-btn secondary" data-action="remove-spaces">Boşlukları Kaldır</button>
+          <button class="t-btn secondary" data-action="slug">Slug Yap</button>
+          <button class="t-btn secondary" data-action="trim">Trim</button>
+        </div>
+        <div class="io-col">
+          <label>Çıkış</label>
+          <textarea class="io-textarea output" id="textOutput" placeholder="Çıkış burada görünecek..." readonly></textarea>
+        </div>
+        <div class="tool-btn-row">
+          <button class="t-btn secondary" id="textCopyBtn">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Kopyala
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT HASHES -->
+<section id="about-hashes">
+  <div class="sw">
+    <div class="sec-label fi">Algoritmalar</div>
+    <div class="sec-title fi">Ne İşe Yarar?</div>
+    <div class="info-grid">
+      <div class="info-card fi">
+        <div class="info-card-title">MD5 <span class="ic-badge">128-bit</span></div>
+        <p>Dosya bütünlüğü kontrolü ve legacy sistemler için kullanılır. Kriptografik güvenlik gerektirmeyen durumlar için idealdir. Hızlı ve yaygın.</p>
+      </div>
+      <div class="info-card fi">
+        <div class="info-card-title">SHA-1 <span class="ic-badge">160-bit</span></div>
+        <p>Git versiyonlama sisteminin temelini oluşturur. Güvenlik açısından modası geçmiş olsa da checksum ve versiyon kontrolünde yaygın kullanılır.</p>
+      </div>
+      <div class="info-card fi">
+        <div class="info-card-title">SHA-256 <span class="ic-badge">256-bit</span></div>
+        <p>Günümüzün altın standardı. SSL sertifikaları, blockchain (Bitcoin), şifre hashleme ve veri bütünlüğü doğrulamasında tercih edilir.</p>
+      </div>
+      <div class="info-card fi">
+        <div class="info-card-title">SHA-512 <span class="ic-badge">512-bit</span></div>
+        <p>Maksimum güvenlik gerektiren senaryolar için. Çarpışma direnci son derece yüksektir. Kritik veri imzalama işlemlerinde kullanılır.</p>
+      </div>
+      <div class="info-card fi">
+        <div class="info-card-title">Base64 <span class="ic-badge">Encode</span></div>
+        <p>Binary veriyi ASCII metin formatına çevirir. E-posta eklentileri, data URI'ları ve API payload transferlerinde zorunlu bir kodlama standardıdır.</p>
+      </div>
+      <div class="info-card fi">
+        <div class="info-card-title">URL Encode <span class="ic-badge">RFC 3986</span></div>
+        <p>URL'lerde kullanılamayan özel karakterleri %XX formatına dönüştürür. Query string parametrelerinde ve form verisi iletiminde kritik rol oynar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<footer>
+  <div class="foot-logo"><span>Hash</span>Can</div>
+  <p>Tüm işlemler tarayıcınızda gerçekleşir. Verileriniz hiçbir sunucuya gönderilmez.</p>
+  <p style="margin-top:8px;">Built with <span>♥</span> — <a href="https://github.com" target="_blank">GitHub'da Görüntüle</a></p>
+</footer>
+
+</div><!-- #site -->
+
+<div class="copied-flash" id="copiedFlash">✓ Kopyalandı!</div>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+/* ── CURSOR ── */
+const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function raf(){rx+=(mx-rx)*.14;ry+=(my-ry)*.14;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(raf);})();
+document.querySelectorAll('a,button,.algo-btn,.act-btn,.t-btn,.tab-btn,.opt-chip,.io-arrow').forEach(el=>{el.addEventListener('mouseenter',()=>document.body.classList.add('ch'));el.addEventListener('mouseleave',()=>document.body.classList.remove('ch'));});
+
+
+
+/* ── SCROLL ANIMATIONS ── */
+document.addEventListener("DOMContentLoaded",animateFI);
+function animateFI(){
+  const io=new IntersectionObserver(ents=>{ents.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.fi').forEach(el=>io.observe(el));
+}
+
+/* ── THEME ── */
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);localStorage.setItem('hc-theme',t);
+});
+
+/* ── HASH LIBRARY (Pure JS, no dependencies) ── */
+// MD5
+function md5(s){
+  function L(x,n){return(x<<n)|(x>>>(32-n));}
+  function A(x,y){var l=(x&0xFFFF)+(y&0xFFFF),m=(x>>16)+(y>>16)+(l>>16);return(m<<16)|(l&0xFFFF);}
+  function F(q,a,b,x,s,t){return A(L(A(A(a,q),A(x,t)),s),b);}
+  function FF(a,b,c,d,x,s,t){return F((b&c)|((~b)&d),a,b,x,s,t);}
+  function GG(a,b,c,d,x,s,t){return F((b&d)|(c&(~d)),a,b,x,s,t);}
+  function HH(a,b,c,d,x,s,t){return F(b^c^d,a,b,x,s,t);}
+  function II(a,b,c,d,x,s,t){return F(c^(b|(~d)),a,b,x,s,t);}
+  var x=str2blks(s),a=1732584193,b=-271733879,c=-1732584194,d=271733878;
+  for(var i=0;i<x.length;i+=16){var ox=a,oy=b,oz=c,ow=d;
+    a=FF(a,b,c,d,x[i],7,-680876936);d=FF(d,a,b,c,x[i+1],12,-389564586);c=FF(c,d,a,b,x[i+2],17,606105819);b=FF(b,c,d,a,x[i+3],22,-1044525330);
+    a=FF(a,b,c,d,x[i+4],7,-176418897);d=FF(d,a,b,c,x[i+5],12,1200080426);c=FF(c,d,a,b,x[i+6],17,-1473231341);b=FF(b,c,d,a,x[i+7],22,-45705983);
+    a=FF(a,b,c,d,x[i+8],7,1770035416);d=FF(d,a,b,c,x[i+9],12,-1958414417);c=FF(c,d,a,b,x[i+10],17,-42063);b=FF(b,c,d,a,x[i+11],22,-1990404162);
+    a=FF(a,b,c,d,x[i+12],7,1804603682);d=FF(d,a,b,c,x[i+13],12,-40341101);c=FF(c,d,a,b,x[i+14],17,-1502002290);b=FF(b,c,d,a,x[i+15],22,1236535329);
+    a=GG(a,b,c,d,x[i+1],5,-165796510);d=GG(d,a,b,c,x[i+6],9,-1069501632);c=GG(c,d,a,b,x[i+11],14,643717713);b=GG(b,c,d,a,x[i],20,-373897302);
+    a=GG(a,b,c,d,x[i+5],5,-701558691);d=GG(d,a,b,c,x[i+10],9,38016083);c=GG(c,d,a,b,x[i+15],14,-660478335);b=GG(b,c,d,a,x[i+4],20,-405537848);
+    a=GG(a,b,c,d,x[i+9],5,568446438);d=GG(d,a,b,c,x[i+14],9,-1019803690);c=GG(c,d,a,b,x[i+3],14,-187363961);b=GG(b,c,d,a,x[i+8],20,1163531501);
+    a=GG(a,b,c,d,x[i+13],5,-1444681467);d=GG(d,a,b,c,x[i+2],9,-51403784);c=GG(c,d,a,b,x[i+7],14,1735328473);b=GG(b,c,d,a,x[i+12],20,-1926607734);
+    a=HH(a,b,c,d,x[i+5],4,-378558);d=HH(d,a,b,c,x[i+8],11,-2022574463);c=HH(c,d,a,b,x[i+11],16,1839030562);b=HH(b,c,d,a,x[i+14],23,-35309556);
+    a=HH(a,b,c,d,x[i+1],4,-1530992060);d=HH(d,a,b,c,x[i+4],11,1272893353);c=HH(c,d,a,b,x[i+7],16,-155497632);b=HH(b,c,d,a,x[i+10],23,-1094730640);
+    a=HH(a,b,c,d,x[i+13],4,681279174);d=HH(d,a,b,c,x[i],11,-358537222);c=HH(c,d,a,b,x[i+3],16,-722521979);b=HH(b,c,d,a,x[i+6],23,76029189);
+    a=HH(a,b,c,d,x[i+9],4,-640364487);d=HH(d,a,b,c,x[i+12],11,-421815835);c=HH(c,d,a,b,x[i+15],16,530742520);b=HH(b,c,d,a,x[i+2],23,-995338651);
+    a=II(a,b,c,d,x[i],6,-198630844);d=II(d,a,b,c,x[i+7],10,1126891415);c=II(c,d,a,b,x[i+14],15,-1416354905);b=II(b,c,d,a,x[i+5],21,-57434055);
+    a=II(a,b,c,d,x[i+12],6,1700485571);d=II(d,a,b,c,x[i+3],10,-1894986606);c=II(c,d,a,b,x[i+10],15,-1051523);b=II(b,c,d,a,x[i+1],21,-2054922799);
+    a=II(a,b,c,d,x[i+8],6,1873313359);d=II(d,a,b,c,x[i+15],10,-30611744);c=II(c,d,a,b,x[i+6],15,-1560198380);b=II(b,c,d,a,x[i+13],21,1309151649);
+    a=II(a,b,c,d,x[i+4],6,-145523070);d=II(d,a,b,c,x[i+11],10,-1120210379);c=II(c,d,a,b,x[i+2],15,718787259);b=II(b,c,d,a,x[i+9],21,-343485551);
+    a=A(a,ox);b=A(b,oy);c=A(c,oz);d=A(d,ow);
+  }return[a,b,c,d];}
+  function str2blks(s){var nb=((s.length+8)>>6)+1,bs=new Array(nb*16);for(var i=0;i<nb*16;i++)bs[i]=0;for(var i=0;i<s.length;i++)bs[i>>2]|=s.charCodeAt(i)<<((i%4)*8);bs[s.length>>2]|=0x80<<((s.length%4)*8);bs[nb*16-2]=s.length*8;return bs;}
+  function hex32(v){var s='';for(var i=0;i<4;i++)s+=('0'+((v>>>(i*8))&0xFF).toString(16)).slice(-2);return s;}
+  var h=md5(s);return hex32(h[0])+hex32(h[1])+hex32(h[2])+hex32(h[3]);
+}
+
+// SHA via Web Crypto
+async function sha(algo, text){
+  const msgBuf=new TextEncoder().encode(text);
+  const hashBuf=await crypto.subtle.digest(algo,msgBuf);
+  return Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function hashText(text,algo){
+  if(!text)return'';
+  switch(algo){
+    case'md5':return md5(text);
+    case'sha1':return await sha('SHA-1',text);
+    case'sha256':return await sha('SHA-256',text);
+    case'sha512':return await sha('SHA-512',text);
+    default:return md5(text);
+  }
+}
+
+/* ── QUICK HASH ── */
+let qcAlgo='md5';
+document.querySelectorAll('.algo-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.algo-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');qcAlgo=btn.dataset.algo;
+    const v=document.getElementById('qcInput').value;
+    if(v)doQuickHash(v);
+  });
+});
+
+async function doQuickHash(text){
+  const out=document.getElementById('qcOut');
+  out.textContent='Hesaplanıyor...';
+  const h=await hashText(text,qcAlgo);
+  out.textContent=h;
+  out.classList.toggle('has-value',!!h);
+}
+
+document.getElementById('qcHashBtn').addEventListener('click',()=>{
+  const v=document.getElementById('qcInput').value.trim();
+  if(v)doQuickHash(v);
+});
+document.getElementById('qcInput').addEventListener('input',e=>{if(e.target.value)doQuickHash(e.target.value);else document.getElementById('qcOut').textContent='— hash çıktısı burada görünecek —';});
+document.getElementById('qcCopyBtn').addEventListener('click',()=>{copyText(document.getElementById('qcOut').textContent);});
+document.getElementById('qcClearBtn').addEventListener('click',()=>{document.getElementById('qcInput').value='';document.getElementById('qcOut').textContent='— hash çıktısı burada görünecek —';document.getElementById('qcOut').classList.remove('has-value');});
+
+/* ── ENCODE/DECODE ── */
+let encMode='base64';
+document.querySelectorAll('#encodeOpts .opt-chip').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#encodeOpts .opt-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');encMode=btn.dataset.mode;
+  });
+});
+
+function encodeText(text,mode){
+  try{
+    switch(mode){
+      case'base64':return btoa(unescape(encodeURIComponent(text)));
+      case'url':return encodeURIComponent(text);
+      case'hex':return Array.from(new TextEncoder().encode(text)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      case'binary':return Array.from(new TextEncoder().encode(text)).map(b=>b.toString(2).padStart(8,'0')).join(' ');
+      case'html':return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      case'unicode':return Array.from(text).map(c=>`\\u${c.charCodeAt(0).toString(16).padStart(4,'0')}`).join('');
+      default:return text;
+    }
+  }catch(e){return'Hata: '+e.message;}
+}
+
+function decodeText(text,mode){
+  try{
+    switch(mode){
+      case'base64':return decodeURIComponent(escape(atob(text)));
+      case'url':return decodeURIComponent(text);
+      case'hex':{const bytes=text.match(/.{1,2}/g)||[];return new TextDecoder().decode(new Uint8Array(bytes.map(b=>parseInt(b,16))));}
+      case'binary':{const bytes=text.trim().split(/\s+/);return new TextDecoder().decode(new Uint8Array(bytes.map(b=>parseInt(b,2))));}
+      case'html':return text.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+      case'unicode':return text.replace(/\\u([0-9a-fA-F]{4})/g,(_,c)=>String.fromCharCode(parseInt(c,16)));
+      default:return text;
+    }
+  }catch(e){return'Çözme hatası: '+e.message;}
+}
+
+document.getElementById('encInput').addEventListener('input',e=>{
+  const cnt=e.target.value.length;
+  document.getElementById('encCharCount').textContent=cnt+' karakter';
+});
+document.getElementById('encodeBtn').addEventListener('click',()=>{
+  const v=document.getElementById('encInput').value;
+  document.getElementById('encOutput').value=encodeText(v,encMode);
+  document.getElementById('encStatus').textContent='Encode edildi';
+});
+document.getElementById('decodeBtn').addEventListener('click',()=>{
+  const v=document.getElementById('encInput').value;
+  document.getElementById('encOutput').value=decodeText(v,encMode);
+  document.getElementById('encStatus').textContent='Decode edildi';
+});
+document.getElementById('encCopyBtn').addEventListener('click',()=>{copyText(document.getElementById('encOutput').value);});
+document.getElementById('swapBtn').addEventListener('click',()=>{
+  const a=document.getElementById('encInput').value,b=document.getElementById('encOutput').value;
+  document.getElementById('encInput').value=b;document.getElementById('encOutput').value=a;
+});
+
+/* ── COMPARE ── */
+document.getElementById('compareBtn').addEventListener('click',()=>{
+  const h1=document.getElementById('cmp1').value.trim();
+  const h2=document.getElementById('cmp2').value.trim();
+  const res=document.getElementById('cmpResult');
+  res.style.display='flex';
+  if(!h1||!h2){res.className='cmp-result cmp-nomatch';res.innerHTML=`<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Lütfen her iki hash'i girin`;return;}
+  if(h1===h2){res.className='cmp-result cmp-match';res.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Hash'ler eşleşiyor!`;}
+  else{res.className='cmp-result cmp-nomatch';res.innerHTML=`<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Hash'ler eşleşmiyor`;}
+});
+document.getElementById('cmpClear').addEventListener('click',()=>{
+  document.getElementById('cmp1').value='';document.getElementById('cmp2').value='';
+  document.getElementById('cmpResult').style.display='none';
+});
+
+let cmpAlgo='md5';
+document.querySelectorAll('#cmpAlgoOpts .opt-chip').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#cmpAlgoOpts .opt-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');cmpAlgo=btn.dataset.algo;
+  });
+});
+document.getElementById('cmpHashBtn').addEventListener('click',async()=>{
+  const text=document.getElementById('cmpText').value.trim();
+  const expected=document.getElementById('cmpExpected').value.trim();
+  if(!text||!expected)return;
+  const computed=await hashText(text,cmpAlgo);
+  const res=document.getElementById('cmpHashResult');
+  res.style.display='flex';
+  if(computed.toLowerCase()===expected.toLowerCase()){
+    res.className='cmp-result cmp-match';
+    res.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Doğrulandı! Hash eşleşiyor.`;
+  }else{
+    res.className='cmp-result cmp-nomatch';
+    res.innerHTML=`<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Eşleşmiyor. Hesaplanan: ${computed.substring(0,20)}...`;
+  }
+});
+
+/* ── MULTI HASH ── */
+document.getElementById('multiHashBtn').addEventListener('click',async()=>{
+  const text=document.getElementById('multiInput').value.trim();
+  if(!text)return;
+  const algos=[
+    {name:'MD5',key:'md5'},{name:'SHA-1',key:'sha1'},
+    {name:'SHA-256',key:'sha256'},{name:'SHA-512',key:'sha512'}
+  ];
+  const container=document.getElementById('multiResults');
+  container.innerHTML='';
+  for(const a of algos){
+    const h=await hashText(text,a.key);
+    const row=document.createElement('div');
+    row.style.cssText='background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:16px 20px;';
+    row.innerHTML=`<div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">${a.name}</div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent-bright);word-break:break-all;cursor:pointer;" onclick="copyText('${h}')" title="Kopyala">${h}</div>`;
+    container.appendChild(row);
+  }
+});
+
+/* ── JWT DECODE ── */
+document.getElementById('jwtDecodeBtn').addEventListener('click',()=>{
+  const token=document.getElementById('jwtInput').value.trim();
+  const res=document.getElementById('jwtResult');
+  if(!token){res.innerHTML='';return;}
+  try{
+    const parts=token.split('.');
+    if(parts.length<2)throw new Error('Geçersiz JWT formatı');
+    const decodeB64=str=>{str=str.replace(/-/g,'+').replace(/_/g,'/');while(str.length%4)str+='=';return JSON.parse(atob(str));};
+    const header=decodeB64(parts[0]);
+    const payload=decodeB64(parts[1]);
+    const now=Math.floor(Date.now()/1000);
+    const expired=payload.exp&&payload.exp<now;
+    res.innerHTML=`
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;">
+        ${expired?`<span style="color:var(--danger);">✗ Token Süresi Dolmuş</span>`:`<span style="color:var(--success);">✓ Token Geçerli</span>`}
+        ${payload.exp?`<span style="color:var(--faint);font-weight:400;">(${new Date(payload.exp*1000).toLocaleString('tr-TR')})</span>`:''}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Header</div>
+          <pre style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-bright);overflow-x:auto;white-space:pre-wrap;">${JSON.stringify(header,null,2)}</pre>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Payload</div>
+          <pre style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-bright);overflow-x:auto;white-space:pre-wrap;">${JSON.stringify(payload,null,2)}</pre>
+        </div>
+      </div>`;
+  }catch(e){res.innerHTML=`<div style="color:var(--danger);font-size:13px;padding:12px;border:1px solid rgba(255,77,106,.3);border-radius:4px;background:rgba(255,77,106,.07);">Hata: ${e.message}</div>`;}
+});
+
+/* ── TEXT TOOLS ── */
+document.querySelectorAll('[data-action]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const text=document.getElementById('textInput').value;
+    let out='';
+    switch(btn.dataset.action){
+      case'upper':out=text.toUpperCase();break;
+      case'lower':out=text.toLowerCase();break;
+      case'reverse':out=text.split('').reverse().join('');break;
+      case'wordcount':
+        const words=text.trim().split(/\s+/).filter(Boolean).length;
+        const chars=text.length;const lines=text.split('\n').length;
+        out=`Kelime: ${words}\nKarakter: ${chars}\nSatır: ${lines}`;break;
+      case'remove-spaces':out=text.replace(/\s+/g,'');break;
+      case'slug':out=text.toLowerCase().replace(/[ğ]/g,'g').replace(/[ü]/g,'u').replace(/[ş]/g,'s').replace(/[ı]/g,'i').replace(/[ö]/g,'o').replace(/[ç]/g,'c').replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').trim();break;
+      case'trim':out=text.trim();break;
+    }
+    document.getElementById('textOutput').value=out;
+  });
+});
+document.getElementById('textCopyBtn').addEventListener('click',()=>{copyText(document.getElementById('textOutput').value);});
+
+/* ── TABS ── */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tool-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── COPY UTILITY ── */
+function copyText(text){
+  if(!text||text.includes('—'))return;
+  navigator.clipboard.writeText(text).then(()=>{
+    const f=document.getElementById('copiedFlash');
+    f.classList.add('show');setTimeout(()=>f.classList.remove('show'),1800);
+  });
+}
+
+/* ── SMOOTH SCROLL ── */
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}
+  });
+});
+</script>
+</body>
+</html>
